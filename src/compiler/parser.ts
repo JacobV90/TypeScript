@@ -6390,6 +6390,7 @@ namespace ts {
                     // This is so that /** * @type */ doesn't parse.
                     let state = JSDocState.SawAsterisk;
                     let margin: number | undefined;
+                    let previousToken: number | undefined;
                     // + 4 for leading '/** '
                     let indent = start - Math.max(content.lastIndexOf("\n", start), 0) + 4;
                     function pushComment(text: string) {
@@ -6409,10 +6410,8 @@ namespace ts {
                     loop: while (true) {
                         switch (token()) {
                             case SyntaxKind.AtToken:
-                                if (state === JSDocState.BeginningOfLine || state === JSDocState.SawAsterisk) {
-                                    console.log(token())
-                                    console.log(parseTag(indent));
-                                    console.log(state);
+                                if ((previousToken == SyntaxKind.AsteriskToken || previousToken === SyntaxKind.WhitespaceTrivia) && 
+                                    (state === JSDocState.BeginningOfLine || state === JSDocState.SawAsterisk)) {
                                     removeTrailingWhitespace(comments);
                                     addTag(parseTag(indent));
                                     // NOTE: According to usejsdoc.org, a tag goes to end of line, except the last tag.
@@ -6470,6 +6469,7 @@ namespace ts {
                                 pushComment(scanner.getTokenText());
                                 break;
                         }
+                        previousToken = token();
                         nextJSDocToken();
                     }
                     removeLeadingNewlines(comments);
